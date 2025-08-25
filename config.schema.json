@@ -1,0 +1,29 @@
+{
+    "pluginAlias": "Optiflame",
+    "pluginType": "platform",
+    "singular": false,
+    "strictValidation": false,
+    "schema": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "title": "Name",
+                "type": "string",
+                "required": true,
+                "default": "Optiflame"
+            },
+            "gdid": {
+                "title": "GDID",
+                "type": "string",
+                "required": true,
+                "description": "The GDID of your fireplace"
+            },
+            "pin": {
+                "title": "PIN Code",
+                "type": "string",
+                "required": true,
+                "description": "The PIN code configured for guest access"
+            }
+        }
+    }
+}
