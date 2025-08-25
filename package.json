@@ -3,10 +3,9 @@
     "displayName": "Optiflame",
     "type": "module",
     "version": "1.0.0",
-    "private": true,
-    "description": "A short description about what your plugin does.",
+    "description": "Optiflame pluging for Homebridge",
     "author": "Romain DUBOC <romain@duboc.pro>",
-    "license": "Apache-2.0",
+    "license": "MIT",
     "homepage": "https://github.com/dubocr/homebridge-optiflame#readme",
     "repository": {
         "type": "git",
