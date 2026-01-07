@@ -144,10 +144,15 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
             headers: this.headers,
         })
 
-        const result = await response.json();
-        this.log.debug(result);
-        if (!result.IsException) {
-            this.state = value
+        try {
+            const result = await response.json();
+            this.log.debug(result);
+            if (!result.IsException) {
+                this.state = value
+            }
+        } catch (e) {
+            const text = await response.text();
+            this.log.error(text);
         }
     }
 }

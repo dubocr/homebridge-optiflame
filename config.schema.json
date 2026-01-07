@@ -1,6 +1,6 @@
 {
     "pluginAlias": "Optiflame",
-    "pluginType": "platform",
+    "pluginType": "accessory",
     "singular": false,
     "strictValidation": false,
     "schema": {
