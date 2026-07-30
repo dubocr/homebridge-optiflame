@@ -23,6 +23,9 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
         'Content-type': 'application/json; charset=UTF-8',
         'app_name': 'FlameConnect',
         'app_device_os': 'iOS',
+        'app_version': '2.20.2',
+        'api_version': '1.0',
+        'device_model': 'iPad8,6',
     };
 
     /**
@@ -144,15 +147,10 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
             headers: this.headers,
         })
 
-        try {
-            const result = await response.json();
-            this.log.debug(result);
-            if (!result.IsException) {
-                this.state = value
-            }
-        } catch (e) {
-            const text = await response.text();
-            this.log.error(text);
+        const result = await response.json();
+        this.log.debug(result);
+        if (!result.IsException) {
+            this.state = value
         }
     }
 }
