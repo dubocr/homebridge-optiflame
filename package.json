@@ -2,7 +2,7 @@
     "name": "homebridge-optiflame",
     "displayName": "Optiflame",
     "type": "module",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Optiflame pluging for Homebridge",
     "author": "Romain DUBOC <romain@duboc.pro>",
     "license": "MIT",
