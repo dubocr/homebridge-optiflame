@@ -1,5 +1,7 @@
-import type { AccessoryConfig, API, CharacteristicValue, Logging, Service, AccessoryPlugin } from 'homebridge';
+import type { AccessoryConfig, API, CharacteristicValue, Logging, Service, AccessoryPlugin, MatterAccessory } from 'homebridge';
 import { v5 as uuidv5 } from 'uuid';
+import { PLATFORM_NAME, PLUGIN_NAME } from './settings.js';
+
 type Parameter = {
   ParameterId: number;
   Value: string;
@@ -13,10 +15,13 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
 
   private readonly services: Array<Service>;
   private readonly log: Logging;
+  private readonly api: API;
   private readonly url = 'https://app-mobileapiext-gdhv.azurewebsites.net/api/Fires/';
   private readonly gdid: string;
   private readonly pin: string;
   private readonly deviceId: string;
+  private readonly displayName: string;
+  private readonly matterAccessoryUuid: string;
   private state: CharacteristicValue = false;
   private params: Parameter[] = [];
   private readonly headers = {
@@ -33,9 +38,12 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
    */
   constructor(log: Logging, config: AccessoryConfig, api: API) {
     this.log = log;
+    this.api = api;
     this.gdid = config.gdid;
     this.pin = config.pin;
     this.deviceId = uuidv5(config.gdid, '6ba7b812-9dad-11d1-80b4-00c04fd430c8');
+    this.displayName = config.name;
+    this.matterAccessoryUuid = api.matter?.uuid.generate(`optiflame-${this.gdid}`) ?? api.hap.uuid.generate(`optiflame-${this.gdid}`);
 
     log.debug('Optiflame Accessory Plugin Loaded');
 
@@ -56,12 +64,52 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
       informationService,
       switchService,
     ];
-    this.init();
+    void this.init();
+    void this.registerMatterAccessory();
   }
 
   async init() {
     await this.login();
     await this.update();
+    await this.updateMatterState();
+  }
+
+  async registerMatterAccessory() {
+    if (!this.api.isMatterEnabled() || !this.api.matter) {
+      return;
+    }
+
+    const accessory: MatterAccessory = {
+      UUID: this.matterAccessoryUuid,
+      displayName: this.displayName,
+      deviceType: this.api.matter.deviceTypes.OnOffSwitch,
+      serialNumber: this.deviceId,
+      manufacturer: 'github.com/dubocr',
+      model: 'Optiflame',
+      firmwareRevision: '1.0.0',
+      context: {
+        deviceId: this.deviceId,
+        gdid: this.gdid,
+      },
+      clusters: {
+        onOff: {
+          onOff: Boolean(this.state),
+        },
+      },
+      handlers: {
+        onOff: {
+          on: async () => {
+            await this.setOnHandler(true);
+          },
+          off: async () => {
+            await this.setOnHandler(false);
+          },
+        },
+      },
+    };
+
+    await this.api.matter.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    await this.updateMatterState();
   }
 
   async login() {
@@ -99,6 +147,18 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
     } else {
       this.log.error(result);
     }
+  }
+
+  async updateMatterState() {
+    if (!this.api.isMatterEnabled() || !this.api.matter) {
+      return;
+    }
+
+    await this.api.matter.updateAccessoryState(
+      this.matterAccessoryUuid,
+      this.api.matter.clusterNames.OnOff,
+      { onOff: Boolean(this.state) },
+    );
   }
 
   /**
@@ -151,6 +211,7 @@ class OptiflameAccessoryPlugin implements AccessoryPlugin {
     this.log.debug(result);
     if (!result.IsException) {
       this.state = value;
+      await this.updateMatterState();
     }
   }
 }
